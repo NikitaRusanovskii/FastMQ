@@ -36,6 +36,33 @@ class IClientFabric(ABC):
         pass
 
 
+class FiltersManager:
+    def __init__(self, filters: dict[str, list[int]]):
+        self.filters = filters
+        self.lock = asyncio.Lock()
+
+    async def add(self, name: str):
+        async with self.lock:
+            self.filters[name] = []
+        logger.info(f'Filter {name} added.')
+
+    async def remove(self, name: str):
+        async with self.lock:
+            if not (name in self.filters.keys()):
+                raise ValueError(f'Filter with name {name} not found!')
+            self.filters.pop(name)
+        logger.info(f'Filter {name} removed.')
+
+    async def subscribe_on(self, name: str, websocket_id: int):
+        async with self.lock:
+            # Consumer не может создать свой фильтр и слушать его
+            if not (name in self.filters.keys()):
+                raise ValueError(f'Filter with name {name} not found!')
+            self.filters[name].append(websocket_id)
+        logger.info((f'Client with ID {websocket_id} '
+                    f'subscribed on filter {name}.'))
+
+
 class Registry(IRegistry):
     def __init__(self, prod_ids: dict[int, Producer],
                  cons_ids: dict[int, Consumer]):

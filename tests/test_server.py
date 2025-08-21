@@ -6,7 +6,7 @@ from core.source import Server
 
 async def test_producer():
     message = {
-        'IDs': [0],
+        'filters': ['test'],
         'message': 'hello my friend'
     }
     async with websockets.connect('ws://localhost:25565/producer') as con:
@@ -21,9 +21,17 @@ async def test_consumer():
         print(msg)
 
 
-async def main():
+async def test_server():
     server = Server()
-    stask = asyncio.create_task(server.start_server())
+    await server.filters_manager.add('test')
+    await server.filters_manager.add('removed_test')
+    await server.filters_manager.subscribe_on('test', 0)
+    await server.filters_manager.remove('removed_test')
+    await server.start_server()
+
+
+async def main():
+    stask = asyncio.create_task(test_server())
     ptask = asyncio.create_task(test_producer())
     ctask = asyncio.create_task(test_consumer())
 
