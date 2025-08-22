@@ -1,17 +1,15 @@
 import asyncio
 import websockets
 import logging
+from .logger import instance_logger
 from abc import ABC, abstractmethod
 from itertools import count
 from .units import Producer, Consumer, Unit
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger('managers-logger')
+# logging
+logger = logging.getLogger(__name__)
+logger = instance_logger(logger)
 
 
 START_CONSUMER_ID = 0

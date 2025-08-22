@@ -2,18 +2,16 @@ import websockets
 import asyncio
 import json
 import logging
+from .logger import instance_logger
 from abc import ABC, abstractmethod
 from .managers import ClientFabric, Registry, FiltersManager
 from .units import Producer, Consumer
 
 
 SERVER_ADDR = ('0.0.0.0', 25565)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger("source-logger")
+# logging
+logger = logging.getLogger(__name__)
+logger = instance_logger(logger)
 
 
 class IServer(ABC):
@@ -31,14 +29,14 @@ class IServer(ABC):
         pass
 
 
-class IMessangeHandler(ABC):
+class IMessageHandler(ABC):
     @abstractmethod
     async def handle(self, message: str):
         """Processes incoming message from producer."""
         pass
 
 
-class MessageHandler:
+class MessageHandler(IMessageHandler):
     def __init__(self,
                  prod_ids: dict[int, Producer],
                  cons_ids: dict[int, Consumer],

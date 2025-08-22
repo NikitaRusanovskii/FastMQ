@@ -1,16 +1,15 @@
 import inspect
 import asyncio
 import logging
+from .logger import instance_logger
 from abc import ABC, abstractmethod
 from typing import Callable, Any
+from .managers import FiltersManager
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger("CLI-logger")
+# logging
+logger = logging.getLogger(__name__)
+logger = instance_logger(logger)
 
 
 class IConsole(ABC):
@@ -20,8 +19,12 @@ class IConsole(ABC):
 
 
 class Console(IConsole):
-    def __init__(self):
-        self.commands = {}
+    def __init__(self, fmanager: FiltersManager):
+        self.fmanager = fmanager
+        self.commands = {
+            '/add_filter': fmanager.add,
+            '/remove_filter': fmanager.remove
+        }
 
     def convert_args(self, value: str,
                      expected_type: int | str) -> int | str:
@@ -42,7 +45,7 @@ class Console(IConsole):
                                           annotations[ann_id].annotation))
             ann_id += 1
         logger.info((f'Arguments for {function.__name__} has been parsed.\n'
-                     f'Args: {args}'))
+                     f'--- Args: {args}'))
         return args
 
     async def on_command(self):
@@ -58,11 +61,11 @@ class Console(IConsole):
                 continue
             func = self.commands[name]
             if len(split_com) == 1:
-                func()
+                await func()
                 continue
             str_args = split_com[1:]
             args = self.parse_args(func, str_args)
             try:
-                func(*args)
+                await func(*args)
             except Exception as ex:
                 logger.error(f'Error {ex}.')

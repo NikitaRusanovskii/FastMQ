@@ -1,7 +1,7 @@
 import websockets
 import asyncio
 import json
-from core.source import Server
+from core.main import main
 
 
 async def test_producer():
@@ -21,17 +21,8 @@ async def test_consumer():
         print(msg)
 
 
-async def test_server():
-    server = Server()
-    await server.filters_manager.add('test')
-    await server.filters_manager.add('removed_test')
-    await server.filters_manager.subscribe_on('test', 0)
-    await server.filters_manager.remove('removed_test')
-    await server.start_server()
-
-
-async def main():
-    stask = asyncio.create_task(test_server())
+async def test_main():
+    stask = asyncio.create_task(main())
     ptask = asyncio.create_task(test_producer())
     ctask = asyncio.create_task(test_consumer())
 
@@ -43,4 +34,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(test_main())
