@@ -4,7 +4,6 @@ import json
 import logging
 from .logger import instance_logger
 from .managers import ClientFabric, Registry, FiltersManager
-from .units import Producer, Consumer
 
 
 SERVER_ADDR = ('0.0.0.0', 25565)
@@ -15,27 +14,23 @@ logger = instance_logger(logger)
 
 class MessageHandler:
     def __init__(self,
-                 prod_ids: dict[int, Producer],
-                 cons_ids: dict[int, Consumer],
-                 filters: dict[str, list[int]]):
-        self.prod_ids = prod_ids
-        self.cons_ids = cons_ids
-        self.filters = filters
+                 registry: Registry,
+                 filters_manager: FiltersManager):
+        self.registry = registry
+        self.filters_manager = filters_manager
 
     async def send_on(self, message: str, ids: list[int]):
         for id in ids:
-            if not (id in self.cons_ids):
-                err = ValueError(f'ID {id} not found.')
-                logger.info(f'Error {err}.')
-                raise err
-            await self.cons_ids[id].websocket.send(message)
+            consumer = await self.registry.get_consumer_by_id(id)
+            await consumer.websocket.send(message)
 
     async def handle(self, message: str):
         unpacked = json.loads(message)
         msg = unpacked['message']
         filts = unpacked['filters']
-        for filter in filts:
-            await self.send_on(msg, self.filters[filter])
+        for f in filts:
+            ids = await self.filters_manager.get_cons_ids_by_filter(f)
+            await self.send_on(msg, ids)
 
 
 class Server:
@@ -47,9 +42,8 @@ class Server:
         self.registry = Registry(self.prod_ids,
                                  self.cons_ids)
         self.client_fabric = ClientFabric(self.registry)
-        self.message_handler = MessageHandler(self.prod_ids,
-                                              self.cons_ids,
-                                              self.filters)
+        self.message_handler = MessageHandler(self.registry,
+                                              self.filters_manager)
 
     async def handler(self, websocket: websockets.ClientConnection):
         path = websocket.request.path

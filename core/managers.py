@@ -20,6 +20,15 @@ class FiltersManager:
         self.filters = filters
         self.lock = asyncio.Lock()
 
+    async def get_cons_ids_by_filter(self, filter: str):
+        async with self.lock:
+            try:
+                return self.filters[filter]
+            except KeyError as ex:
+                logger.error(f'Unknown filter: {ex}')
+        return None
+
+    # commands:
     async def add(self, name: str):
         async with self.lock:
             self.filters[name] = []
@@ -50,6 +59,14 @@ class Registry:
         self.cons_id = count(START_CONSUMER_ID)
         self.prod_id = count(START_PRODUCER_ID)
         self.lock = asyncio.Lock()
+
+    async def get_consumer_by_id(self, id: int):
+        async with self.lock:
+            try:
+                return self.cons_ids[id]
+            except KeyError as ex:
+                logger.error(f'Unknown key: {ex}')
+        return None
 
     async def add_consumer(self, consumer: Consumer):
         async with self.lock:
