@@ -4,6 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from itertools import count
 from .units import Producer, Consumer, Unit
+from .configurator import instance_config
 
 
 logging.basicConfig(
@@ -12,10 +13,11 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger('managers-logger')
+config = instance_config()
 
 
-START_CONSUMER_ID = 0
-START_PRODUCER_ID = 100
+START_CONSUMER_ID = int(config.get_element('UNIT_INFO', 'start_consumer_id'))
+START_PRODUCER_ID = int(config.get_element('UNIT_INFO', 'start_producer_id'))
 
 
 class IRegistry(ABC):

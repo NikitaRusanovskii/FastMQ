@@ -5,15 +5,21 @@ import logging
 from abc import ABC, abstractmethod
 from .managers import ClientFabric, Registry
 from .units import Producer, Consumer
+from .configurator import instance_config
 
 
-SERVER_ADDR = ('0.0.0.0', 25565)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger("source-logger")
+config = instance_config()
+
+SERVER_ADDR = (
+    config.get_element('SERVER_INFO', 'server_ip'),
+    int(config.get_element('SERVER_INFO', 'server_port'))
+)
 
 
 class IServer(ABC):
