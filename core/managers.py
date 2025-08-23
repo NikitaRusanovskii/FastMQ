@@ -8,7 +8,8 @@ from .units import Producer, Consumer, Unit
 
 # logging
 logger = logging.getLogger(__name__)
-logger = instance_logger(logger)
+logger = instance_logger(logger, __name__)
+
 
 
 START_CONSUMER_ID = 0

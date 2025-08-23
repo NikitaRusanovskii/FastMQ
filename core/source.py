@@ -9,7 +9,7 @@ from .managers import ClientFabric, Registry, FiltersManager
 SERVER_ADDR = ('0.0.0.0', 25565)
 # logging
 logger = logging.getLogger(__name__)
-logger = instance_logger(logger)
+logger = instance_logger(logger, __name__)
 
 
 class MessageHandler:

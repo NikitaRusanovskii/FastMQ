@@ -1,9 +1,13 @@
 import logging
+from pathlib import Path
 
+logger_dir = Path('logs')
+if not logger_dir.exists():
+    logger_dir.mkdir()
 
-def instance_logger(logger: logging.Logger) -> logging.Logger:
+def instance_logger(logger: logging.Logger, name: str) -> logging.Logger:
     logger.setLevel(logging.INFO)
-    file_handler = logging.FileHandler(f'logs\\{__name__}.log', mode='a')
+    file_handler = logging.FileHandler(f'logs\\{name}.log', mode='a')
     formatter = logging.Formatter(
         fmt='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'

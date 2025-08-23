@@ -9,8 +9,7 @@ from .managers import FiltersManager
 
 # logging
 logger = logging.getLogger(__name__)
-logger = instance_logger(logger)
-
+logger = instance_logger(logger, __name__)
 
 # utils
 def convert_args(value: str,
@@ -60,7 +59,7 @@ class Console(IConsole):
                 continue
             split_com = command.split()
             name = split_com[0]
-            if not name:
+            if not self.commands.get(name):
                 logger.warning('Input unknown command.')
                 continue
             func = self.commands[name]
