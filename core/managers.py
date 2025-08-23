@@ -2,7 +2,6 @@ import asyncio
 import websockets
 import logging
 from .logger import instance_logger
-from abc import ABC, abstractmethod
 from itertools import count
 from .units import Producer, Consumer, Unit
 
@@ -14,24 +13,6 @@ logger = instance_logger(logger)
 
 START_CONSUMER_ID = 0
 START_PRODUCER_ID = 100
-
-
-class IRegistry(ABC):
-    @abstractmethod
-    async def add_consumer(self, consumer: Consumer):
-        pass
-
-    @abstractmethod
-    async def add_producer(self, producer: Producer):
-        pass
-
-
-class IClientFabric(ABC):
-    @abstractmethod
-    async def create(self,
-                     websocket: websockets.ClientConnection,
-                     path: str) -> Unit:
-        pass
 
 
 class FiltersManager:
@@ -61,7 +42,7 @@ class FiltersManager:
                     f'subscribed on filter {name}.'))
 
 
-class Registry(IRegistry):
+class Registry:
     def __init__(self, prod_ids: dict[int, Producer],
                  cons_ids: dict[int, Consumer]):
         self.prod_ids = prod_ids
@@ -93,7 +74,7 @@ class Registry(IRegistry):
         logger.info('Unit has been removed from storage!')
 
 
-class ClientFabric(IClientFabric):
+class ClientFabric:
     def __init__(self, registry: Registry):
         self.registry = registry
         self.roles = {

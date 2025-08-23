@@ -3,7 +3,6 @@ import asyncio
 import json
 import logging
 from .logger import instance_logger
-from abc import ABC, abstractmethod
 from .managers import ClientFabric, Registry, FiltersManager
 from .units import Producer, Consumer
 
@@ -14,29 +13,7 @@ logger = logging.getLogger(__name__)
 logger = instance_logger(logger)
 
 
-class IServer(ABC):
-    @abstractmethod
-    async def handler(self, websocket: websockets.ClientConnection):
-        """Processes each client's connections separately.
-
-        Args:
-            websocket: websockets.ClientConnection."""
-        pass
-
-    @abstractmethod
-    async def start_server(self):
-        """Starts asynchronous connection handlers."""
-        pass
-
-
-class IMessageHandler(ABC):
-    @abstractmethod
-    async def handle(self, message: str):
-        """Processes incoming message from producer."""
-        pass
-
-
-class MessageHandler(IMessageHandler):
+class MessageHandler:
     def __init__(self,
                  prod_ids: dict[int, Producer],
                  cons_ids: dict[int, Consumer],
@@ -61,7 +38,7 @@ class MessageHandler(IMessageHandler):
             await self.send_on(msg, self.filters[filter])
 
 
-class Server(IServer):
+class Server:
     def __init__(self):
         self.prod_ids = {}
         self.cons_ids = {}
