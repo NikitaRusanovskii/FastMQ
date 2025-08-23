@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 logger = instance_logger(logger, __name__)
 
 
-
 START_CONSUMER_ID = 0
 START_PRODUCER_ID = 100
 
@@ -38,7 +37,8 @@ class FiltersManager:
     async def remove(self, name: str):
         async with self.lock:
             if not (name in self.filters.keys()):
-                raise ValueError(f'Filter with name {name} not found!')
+                logger.error(f'Filter with name {name} not found!')
+                return
             self.filters.pop(name)
         logger.info(f'Filter {name} removed.')
 
@@ -46,7 +46,8 @@ class FiltersManager:
         async with self.lock:
             # Consumer не может создать свой фильтр и слушать его
             if not (name in self.filters.keys()):
-                raise ValueError(f'Filter with name {name} not found!')
+                logger.error(f'Filter with name {name} not found!')
+                return
             self.filters[name].append(websocket_id)
         logger.info((f'Client with ID {websocket_id} '
                     f'subscribed on filter {name}.'))
@@ -84,11 +85,14 @@ class Registry:
         logger.info(f'Producer added.ID {cur_id}')
 
     async def cleanup(self, unit: Unit):
+        # мне не нравится реализация
         async with self.lock:
             if isinstance(unit, Producer):
-                self.prod_ids.pop(unit.id)
+                if self.prod_ids.get(unit.id):
+                    self.prod_ids.pop(unit.id)
             elif isinstance(unit, Consumer):
-                self.cons_ids.pop(unit.id)
+                if self.cons_ids.get(unit.id):
+                    self.cons_ids.pop(unit.id)
         logger.info('Unit has been removed from storage!')
 
 

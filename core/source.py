@@ -22,6 +22,9 @@ class MessageHandler:
     async def send_on(self, message: str, ids: list[int]):
         for id in ids:
             consumer = await self.registry.get_consumer_by_id(id)
+            if consumer is None:
+                logger.warning('Unknown consumer')
+                return
             await consumer.websocket.send(message)
 
     async def handle(self, message: str):

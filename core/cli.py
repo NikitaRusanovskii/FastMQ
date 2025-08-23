@@ -11,6 +11,7 @@ from .managers import FiltersManager
 logger = logging.getLogger(__name__)
 logger = instance_logger(logger, __name__)
 
+
 # utils
 def convert_args(value: str,
                  expected_type: int | str) -> int | str:
@@ -34,7 +35,6 @@ def parse_args(function: Callable, raw_args: list[str]) -> list[Any]:
     logger.info((f'Arguments for {function.__name__} has been parsed.\n'
                  f'Args: {args}'))
     return args
-
 
 
 class IConsole(ABC):
@@ -62,13 +62,16 @@ class Console(IConsole):
             if not self.commands.get(name):
                 logger.warning('Input unknown command.')
                 continue
-            func = self.commands[name]
-            if len(split_com) == 1:
-                await func()
-                continue
-            str_args = split_com[1:]
-            args = parse_args(func, str_args)
             try:
-                await func(*args)
+                func = self.commands[name]
+                if len(split_com) == 1:
+                    await func()
+                    continue
+                str_args = split_com[1:]
+                args = parse_args(func, str_args)
+                try:
+                    await func(*args)
+                except Exception as ex:
+                    logger.error(f'Error {ex}.')
             except Exception as ex:
-                logger.error(f'Error {ex}.')
+                logger.error(f'Call function error: {ex}')
