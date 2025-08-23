@@ -2,7 +2,6 @@ import websockets
 import asyncio
 import json
 import logging
-from abc import ABC, abstractmethod
 from .managers import ClientFabric, Registry
 from .units import Producer, Consumer
 
@@ -14,28 +13,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger("source-logger")
-
-
-class IServer(ABC):
-    @abstractmethod
-    async def handler(self, websocket: websockets.ClientConnection):
-        """Processes each client's connections separately.
-
-        Args:
-            websocket: websockets.ClientConnection."""
-        pass
-
-    @abstractmethod
-    async def start_server(self):
-        """Starts asynchronous connection handlers."""
-        pass
-
-
-class IMessangeHandler(ABC):
-    @abstractmethod
-    async def handle(self, message: str):
-        """Processes incoming message from producer."""
-        pass
 
 
 class MessageHandler:
@@ -62,7 +39,7 @@ class MessageHandler:
         logger.info(f'Message {message} handled.')
 
 
-class Server(IServer):
+class Server:
     def __init__(self):
         self.prod_ids = {}
         self.cons_ids = {}
