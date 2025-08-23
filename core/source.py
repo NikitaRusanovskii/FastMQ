@@ -4,12 +4,20 @@ import json
 import logging
 from .logger import instance_logger
 from .managers import ClientFabric, Registry, FiltersManager
+from .configurator import instance_config
 
 
-SERVER_ADDR = ('0.0.0.0', 25565)
 # logging
 logger = logging.getLogger(__name__)
 logger = instance_logger(logger, __name__)
+
+# configs
+config = instance_config()
+
+SERVER_ADDR = (
+    config.get_element('SERVER_INFO', 'server_ip'),
+    int(config.get_element('SERVER_INFO', 'server_port'))
+)
 
 
 class MessageHandler:
