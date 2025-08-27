@@ -4,7 +4,7 @@ import logging
 from .logger import instance_logger
 from abc import ABC, abstractmethod
 from typing import Callable, Any
-from .managers import FiltersManager
+from .imanagers import IFiltersManager
 
 
 # logging
@@ -44,7 +44,7 @@ class IConsole(ABC):
 
 
 class Console(IConsole):
-    def __init__(self, fmanager: FiltersManager):
+    def __init__(self, fmanager: IFiltersManager):
         self.fmanager = fmanager
         self.commands = {
             '/add_filter': fmanager.add,

@@ -4,24 +4,17 @@ import logging
 from .logger import instance_logger
 from itertools import count
 from .units import Producer, Consumer, Unit
-from .configurator import instance_config
+from .imanagers import IFiltersManager, IClientFabric, IRegistry
 
 
 # logging
 logger = logging.getLogger(__name__)
 logger = instance_logger(logger, __name__)
 
-# config
-config = instance_config()
 
-
-START_CONSUMER_ID = int(config.get_element('UNIT_INFO', 'start_consumer_id'))
-START_PRODUCER_ID = int(config.get_element('UNIT_INFO', 'start_producer_id'))
-
-
-class FiltersManager:
-    def __init__(self, filters: dict[str, list[int]]):
-        self.filters = filters
+class FiltersManager(IFiltersManager):
+    def __init__(self):
+        self.filters = {'test': [0]}
         self.lock = asyncio.Lock()
 
     async def get_cons_ids_by_filter(self, filter: str):
@@ -57,13 +50,14 @@ class FiltersManager:
                     f'subscribed on filter {name}.'))
 
 
-class Registry:
-    def __init__(self, prod_ids: dict[int, Producer],
-                 cons_ids: dict[int, Consumer]):
-        self.prod_ids = prod_ids
-        self.cons_ids = cons_ids
-        self.cons_id = count(START_CONSUMER_ID)
-        self.prod_id = count(START_PRODUCER_ID)
+class Registry(IRegistry):
+    def __init__(self,
+                 start_consumer_id,
+                 start_producer_id):
+        self.prod_ids = {}
+        self.cons_ids = {}
+        self.cons_id = count(start_consumer_id)
+        self.prod_id = count(start_producer_id)
         self.lock = asyncio.Lock()
 
     async def get_consumer_by_id(self, id: int):
@@ -100,8 +94,8 @@ class Registry:
         logger.info('Unit has been removed from storage!')
 
 
-class ClientFabric:
-    def __init__(self, registry: Registry):
+class ClientFabric(IClientFabric):
+    def __init__(self, registry: IRegistry):
         self.registry = registry
         self.roles = {
             'consumer': Consumer,

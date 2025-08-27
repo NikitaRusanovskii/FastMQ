@@ -3,27 +3,25 @@ import asyncio
 import json
 import logging
 from .logger import instance_logger
-from .managers import ClientFabric, Registry, FiltersManager
-from .configurator import instance_config
+from .imanagers import IClientFabric, IRegistry, IFiltersManager
+from abc import ABC, abstractmethod
 
 
 # logging
 logger = logging.getLogger(__name__)
 logger = instance_logger(logger, __name__)
 
-# configs
-config = instance_config()
 
-SERVER_ADDR = (
-    config.get_element('SERVER_INFO', 'server_ip'),
-    int(config.get_element('SERVER_INFO', 'server_port'))
-)
+class IMessageHandler(ABC):
+    @abstractmethod
+    async def handle(self, message: str):
+        pass
 
 
-class MessageHandler:
+class MessageHandler(IMessageHandler):
     def __init__(self,
-                 registry: Registry,
-                 filters_manager: FiltersManager):
+                 registry: IRegistry,
+                 filters_manager: IFiltersManager):
         self.registry = registry
         self.filters_manager = filters_manager
 
@@ -45,14 +43,13 @@ class MessageHandler:
 
 
 class Server:
-    def __init__(self):
-        self.prod_ids = {}
-        self.cons_ids = {}
-        self.filters = {'test': [0]}
-        self.filters_manager = FiltersManager(self.filters)
-        self.registry = Registry(self.prod_ids,
-                                 self.cons_ids)
-        self.client_fabric = ClientFabric(self.registry)
+    def __init__(self,
+                 filters_manager: IFiltersManager,
+                 registry: IRegistry,
+                 client_fabric: IClientFabric):
+        self.filters_manager = filters_manager
+        self.registry = registry
+        self.client_fabric = client_fabric
         self.message_handler = MessageHandler(self.registry,
                                               self.filters_manager)
 
@@ -68,8 +65,8 @@ class Server:
             logger.info(f'Connection with {client_addr} closed')
             self.registry.cleanup(unit)
 
-    async def start_server(self):
-        async with websockets.serve(self.handler, SERVER_ADDR[0],
-                                    SERVER_ADDR[1]):
+    async def start_server(self, server_addr: tuple[str, int]):
+        async with websockets.serve(self.handler, server_addr[0],
+                                    server_addr[1]):
             logger.info('Server started.')
             await asyncio.Future()
