@@ -14,7 +14,7 @@ logger = instance_logger(logger, __name__)
 
 class FiltersManager(IFiltersManager):
     def __init__(self):
-        self.filters = {'test': [0]}
+        self.filters = {}
         self.lock = asyncio.Lock()
 
     async def get_cons_ids_by_filter(self, filter: str):
@@ -67,6 +67,9 @@ class Registry(IRegistry):
             except KeyError as ex:
                 logger.error(f'Unknown key: {ex}')
         return None
+
+    async def get_id_by_websocket(self, websocketr):
+        return 0
 
     async def add_consumer(self, consumer: Consumer):
         async with self.lock:

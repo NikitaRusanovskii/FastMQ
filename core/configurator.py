@@ -27,6 +27,11 @@ class Config:
             'start_consumer_id': '0',
             'start_producer_id': '100'
             }
+        self.config_parser['QUEUE INFO'] = {
+            'attempts_count': '5',
+            'time_sleep': '5',
+            'queue_pause': '5'
+        }
         self.save()
 
     def save(self):

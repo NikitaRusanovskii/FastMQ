@@ -4,6 +4,7 @@ import json
 import logging
 from .logger import instance_logger
 from .imanagers import IClientFabric, IRegistry, IFiltersManager
+from .imessage_queue import IMessageQueue
 from abc import ABC, abstractmethod
 
 
@@ -12,46 +13,66 @@ logger = logging.getLogger(__name__)
 logger = instance_logger(logger, __name__)
 
 
-class IMessageHandler(ABC):
+class IHandler(ABC):
     @abstractmethod
     async def handle(self, message: str):
         pass
 
 
-class MessageHandler(IMessageHandler):
+class MessageHandler(IHandler):
     def __init__(self,
-                 registry: IRegistry,
-                 filters_manager: IFiltersManager):
-        self.registry = registry
+                 filters_manager: IFiltersManager,
+                 message_queue: IMessageQueue):
         self.filters_manager = filters_manager
-
-    async def send_on(self, message: str, ids: list[int]):
-        for id in ids:
-            consumer = await self.registry.get_consumer_by_id(id)
-            if consumer is None:
-                logger.warning('Unknown consumer')
-                return
-            await consumer.websocket.send(message)
+        self.message_queue = message_queue
 
     async def handle(self, message: str):
-        unpacked = json.loads(message)
-        msg = unpacked['message']
-        filts = unpacked['filters']
-        for f in filts:
-            ids = await self.filters_manager.get_cons_ids_by_filter(f)
-            await self.send_on(msg, ids)
+        dm = json.loads(message)
+        filters = dm.get('filters')
+        msg = dm.get('message')
+        all_ids = set()
+        for filt in filters:
+            ids = await self.filters_manager.get_cons_ids_by_filter(filt)
+            if ids:
+                [all_ids.add(id) for id in ids]
+            else:
+                continue
+        await self.message_queue.publish(msg, list(all_ids))
+
+
+class CommandHandler:
+    def __init__(self, filters_manager: IFiltersManager,
+                 registry: IRegistry):
+        self.filters_manager = filters_manager
+        self.registry = registry
+
+    async def handle(self, message: str,
+                     ws: websockets.ClientConnection) -> bool:
+        if message.startswith('/subscribe_on'):
+            sm = message.split()
+            await self.filters_manager.subscribe_on(
+                sm[1],
+                await self.registry.get_id_by_websocket(ws)
+            )
+            return True
+        else:
+            return False
 
 
 class Server:
     def __init__(self,
                  filters_manager: IFiltersManager,
                  registry: IRegistry,
-                 client_fabric: IClientFabric):
+                 client_fabric: IClientFabric,
+                 message_queue: IMessageQueue):
         self.filters_manager = filters_manager
         self.registry = registry
         self.client_fabric = client_fabric
-        self.message_handler = MessageHandler(self.registry,
-                                              self.filters_manager)
+        self.message_queue = message_queue
+        self.message_handler = MessageHandler(self.filters_manager,
+                                              self.message_queue)
+        self.command_handler = CommandHandler(self.filters_manager,
+                                              self.registry)
 
     async def handler(self, websocket: websockets.ClientConnection):
         path = websocket.request.path
@@ -60,7 +81,8 @@ class Server:
         logger.info(f'Client created like {path}!')
         try:
             async for message in websocket:
-                await self.message_handler.handle(message)
+                if not await self.command_handler.handle(message, websocket):
+                    await self.message_handler.handle(message)
         except websockets.ConnectionClosed:
             logger.info(f'Connection with {client_addr} closed')
             self.registry.cleanup(unit)

@@ -17,6 +17,7 @@ async def test_producer():
 async def test_consumer():
     async with websockets.connect('ws://localhost:25565/consumer') as con:
         await asyncio.sleep(2)
+        await con.send('/subscribe_on test')
         msg = await con.recv()
         print(msg)
 

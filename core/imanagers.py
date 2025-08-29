@@ -39,6 +39,10 @@ class IRegistry(ABC):
     async def cleanup(self, unit: Unit):
         pass
 
+    @abstractmethod
+    async def get_id_by_websocket(self, websocket: ClientConnection) -> int:
+        pass
+
 
 class IClientFabric(ABC):
     @abstractmethod
