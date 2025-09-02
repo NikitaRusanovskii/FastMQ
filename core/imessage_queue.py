@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from websockets import ClientConnection
+from .units import Consumer
 
 
 class IMessageQueue(ABC):
@@ -12,7 +12,7 @@ class IMessageQueue(ABC):
         pass'''
 
     @abstractmethod
-    async def send_to(self, message: str, websocket: ClientConnection) -> bool:
+    async def send_to(self, message: str, consumer: Consumer) -> bool:
         pass
 
     @abstractmethod

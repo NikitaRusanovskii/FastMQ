@@ -37,7 +37,9 @@ class MessageHandler(IHandler):
                 [all_ids.add(id) for id in ids]
             else:
                 continue
-        await self.message_queue.publish(msg, list(all_ids))
+        id_list = list(all_ids)
+        logger.info(f'message: {msg}, ids: {id_list}')
+        await self.message_queue.publish(msg, id_list)
 
 
 class CommandHandler:
@@ -85,7 +87,7 @@ class Server:
                     await self.message_handler.handle(message)
         except websockets.ConnectionClosed:
             logger.info(f'Connection with {client_addr} closed')
-            self.registry.cleanup(unit)
+            await self.registry.cleanup(unit)
 
     async def start_server(self, server_addr: tuple[str, int]):
         async with websockets.serve(self.handler, server_addr[0],

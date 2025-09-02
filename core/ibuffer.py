@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 
 class IBuffer(ABC):
     @abstractmethod
-    async def get_old_element(self) -> tuple[list, str] | None:
+    async def get_old_element(self) -> tuple[int, list[int], str] | None:
         pass
 
     @abstractmethod
-    async def add(self, consumer_ids: list, message: str) -> None:
+    async def add(self, consumer_ids: list[int], message: str) -> None:
         pass
 
     @abstractmethod
@@ -15,5 +15,5 @@ class IBuffer(ABC):
         pass
 
     @abstractmethod
-    async def pop_oldest(self) -> tuple[list, str] | None:
+    async def pop_oldest(self) -> tuple[int, list[int], str] | None:
         pass

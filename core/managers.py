@@ -5,6 +5,7 @@ from .logger import instance_logger
 from itertools import count
 from .units import Producer, Consumer, Unit
 from .imanagers import IFiltersManager, IClientFabric, IRegistry
+from websockets import ClientConnection
 
 
 # logging
@@ -56,6 +57,7 @@ class Registry(IRegistry):
                  start_producer_id):
         self.prod_ids = {}
         self.cons_ids = {}
+        self.sock_ids = {}
         self.cons_id = count(start_consumer_id)
         self.prod_id = count(start_producer_id)
         self.lock = asyncio.Lock()
@@ -68,14 +70,21 @@ class Registry(IRegistry):
                 logger.error(f'Unknown key: {ex}')
         return None
 
-    async def get_id_by_websocket(self, websocketr):
-        return 0
+    async def get_id_by_websocket(self,
+                                  websocket: ClientConnection) -> int | None:
+        async with self.lock:
+            try:
+                return self.sock_ids[websocket]
+            except Exception as ex:
+                logger.error(f'Error {ex}')
+        return None
 
     async def add_consumer(self, consumer: Consumer):
         async with self.lock:
             cur_id = next(self.cons_id)
             self.cons_ids[cur_id] = consumer
             consumer.id = cur_id
+            self.sock_ids[consumer.websocket] = cur_id
         logger.info(f'Consumer added. ID {cur_id}')
 
     async def add_producer(self, producer: Producer):
@@ -83,6 +92,7 @@ class Registry(IRegistry):
             cur_id = next(self.prod_id)
             self.prod_ids[cur_id] = producer
             producer.id = cur_id
+            self.sock_ids[producer.websocket] = cur_id
         logger.info(f'Producer added.ID {cur_id}')
 
     async def cleanup(self, unit: Unit):
@@ -91,9 +101,11 @@ class Registry(IRegistry):
             if isinstance(unit, Producer):
                 if self.prod_ids.get(unit.id):
                     self.prod_ids.pop(unit.id)
+                    self.sock_ids.pop(unit.websocket)
             elif isinstance(unit, Consumer):
                 if self.cons_ids.get(unit.id):
                     self.cons_ids.pop(unit.id)
+                    self.sock_ids.pop(unit.websocket)
         logger.info('Unit has been removed from storage!')
 
 

@@ -18,6 +18,9 @@ class Config:
     def get_int_element(self, section: str, element: str) -> int:
         return int(self.get_element(section, element))
 
+    def get_float_element(self, section: str, element: str) -> float:
+        return float(self.get_element(section, element))
+
     def reset_config(self):
         self.config_parser['SERVER_INFO'] = {
             'server_ip': '0.0.0.0',
@@ -27,10 +30,14 @@ class Config:
             'start_consumer_id': '0',
             'start_producer_id': '100'
             }
-        self.config_parser['QUEUE INFO'] = {
+        self.config_parser['QUEUE_INFO'] = {
             'attempts_count': '5',
             'time_sleep': '5',
-            'queue_pause': '5'
+            'queue_pause': '5',
+            'timeout': '10'
+        }
+        self.config_parser['LOGGER_INFO'] = {
+            'level': 'INFO'
         }
         self.save()
 

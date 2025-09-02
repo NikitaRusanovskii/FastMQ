@@ -40,7 +40,8 @@ class IRegistry(ABC):
         pass
 
     @abstractmethod
-    async def get_id_by_websocket(self, websocket: ClientConnection) -> int:
+    async def get_id_by_websocket(self,
+                                  websocket: ClientConnection) -> int | None:
         pass
 
 

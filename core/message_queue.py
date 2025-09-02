@@ -18,19 +18,22 @@ class MessageQueue(IMessageQueue):
                  registry: IRegistry,
                  attempts_count: int,
                  time_sleep: int,
-                 queue_pause: int):
+                 queue_pause: int,
+                 timeout: float):
         self.registry = registry
         self.buffer = buffer
         self.attempts_count = attempts_count
         self.time_sleep = time_sleep
         self.queue_pause = queue_pause
+        self.timeout = timeout
 
     async def publish(self, message: str, consumer_ids: list[int]):
         try:
-            await self.buffer.add(message=message, consumer_ids=consumer_ids)
-            logger.info('Public succesful.')
+            await self.buffer.add(message=message,
+                                  consumer_ids=consumer_ids)
+            logger.info(f'Public message {message} succesful.')
         except Exception as ex:
-            logger.error(f'Error {ex}.')
+            logger.error(f'Error in publish {ex}.')
 
     '''async def wait_pong(self, websocket: ClientConnection) -> bool:
         await asyncio.sleep(0.1)
@@ -39,7 +42,8 @@ class MessageQueue(IMessageQueue):
         except Exception as ex:
             logger.error(f'Error {ex}')'''
 
-    '''async def send_to(self, message: str, websocket: ClientConnection) -> bool:
+    '''async def send_to(self, message: str,
+    websocket: ClientConnection) -> bool:
         for attempt in range(self.attempts_count):
             try:
                 await websocket.send(message)
@@ -59,7 +63,7 @@ class MessageQueue(IMessageQueue):
                 logger.info('Message sended.')
                 return True
             except Exception as ex:
-                logger.error(f'Error {ex}')
+                logger.error(f'Error in send_to {ex}')
                 continue
         return False
 
@@ -68,10 +72,12 @@ class MessageQueue(IMessageQueue):
             tasks = []
             element = await self.buffer.pop_oldest()
             if not element:
+                logger.info('Element in empty.')
                 await asyncio.sleep(self.queue_pause)
                 continue
-            msg = element[1]
-            consumer_ids = element[0]
+            msg = element[2]
+            consumer_ids = element[1]
+            logger.info(f'Message: {element}')
             if (not msg) or (not consumer_ids):
                 await asyncio.sleep(self.queue_pause)
                 continue
@@ -80,6 +86,6 @@ class MessageQueue(IMessageQueue):
                     ws = await self.registry.get_consumer_by_id(id)
                     tasks.append(self.send_to(msg,
                                               ws))
-                await asyncio.gather(*tasks)
             except Exception as ex:
-                logger.error(f'Error {ex}')
+                logger.error(f'Error in loop {ex}')
+            await asyncio.gather(*tasks)

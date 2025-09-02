@@ -32,7 +32,7 @@ def parse_args(function: Callable, raw_args: list[str]) -> list[Any]:
         args.append(convert_args(param,
                                  annotations[ann_id].annotation))
         ann_id += 1
-    logger.info((f'Arguments for {function.__name__} has been parsed.\n'
+    logger.info((f'Arguments for {function.__name__} has been parsed. '
                  f'Args: {args}'))
     return args
 
