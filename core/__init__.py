@@ -1,4 +1,3 @@
 from .source import Server
 
-
-__all__ = ['Server']
+__all__ = ["Server"]

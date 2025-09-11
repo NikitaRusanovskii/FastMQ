@@ -22,25 +22,23 @@ class Config:
         return float(self.get_element(section, element))
 
     def reset_config(self):
-        self.config_parser['SERVER_INFO'] = {
-            'server_ip': '0.0.0.0',
-            'server_port': '25565'
-            }
-        self.config_parser['UNIT_INFO'] = {
-            'start_consumer_id': '0',
-            'start_producer_id': '100'
-            }
-        self.config_parser['QUEUE_INFO'] = {
-            'attempts_count': '5',
-            'time_sleep': '5',
-            'queue_pause': '5',
-            'timeout': '10'
+        self.config_parser["SERVER_INFO"] = {
+            "server_ip": "0.0.0.0",
+            "server_port": "25565",
         }
-        self.config_parser['LOGGER_INFO'] = {
-            'level': 'INFO'
+        self.config_parser["UNIT_INFO"] = {
+            "start_consumer_id": "0",
+            "start_producer_id": "100",
         }
+        self.config_parser["QUEUE_INFO"] = {
+            "attempts_count": "5",
+            "time_sleep": "5",
+            "queue_pause": "5",
+            "timeout": "10",
+        }
+        self.config_parser["LOGGER_INFO"] = {"level": "INFO"}
         self.save()
 
     def save(self):
-        with open(self.path, 'w') as cfg:
+        with open(self.path, "w") as cfg:
             self.config_parser.write(cfg)

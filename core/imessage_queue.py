@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from .units import Consumer
 
 
@@ -7,9 +8,9 @@ class IMessageQueue(ABC):
     async def publish(self, message: str, consumer_ids: list[int]):
         pass
 
-    '''@abstractmethod
+    """@abstractmethod
     async def wait_pong(self, websocket: ClientConnection) -> bool:
-        pass'''
+        pass"""
 
     @abstractmethod
     async def send_to(self, message: str, consumer: Consumer) -> bool:

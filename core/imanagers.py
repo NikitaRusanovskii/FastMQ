@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
-from .units import Unit, Producer, Consumer
+
 from websockets import ClientConnection
+
+from .units import Consumer, Producer, Unit
 
 
 class IFiltersManager(ABC):
@@ -47,7 +49,5 @@ class IRegistry(ABC):
 
 class IClientFabric(ABC):
     @abstractmethod
-    async def create(self,
-                     websocket: ClientConnection,
-                     path: str) -> Unit:
+    async def create(self, websocket: ClientConnection, path: str) -> Unit:
         pass
