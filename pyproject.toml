@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastmq"
+version = "0.1.0"
+description = "Асинхронная очередь сообщений на websockets"
+authors = [
+  { name="Nikita Rusanovskii", email="nrusanovskii923@gmail.com" }
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "aiosqlite==0.21.0",
+    "colorama==0.4.6",
+    "iniconfig==2.1.0",
+    "packaging==25.0",
+    "pluggy==1.6.0",
+    "Pygments==2.19.2",
+    "typing_extensions==4.15.0",
+    "websockets==15.0.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.1",
+    "pytest-asyncio==1.1.0",
+    "pytest-mock==3.14.1"
+]
